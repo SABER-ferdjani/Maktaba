@@ -47,6 +47,12 @@ class BookViewModel(
             }
         }
     }
+    fun getLongBooks(): List<Book> {
+        return _books.value.filter { it.nbPages > 400 }
+    }
+    fun totalPages(): Int {
+        return _books.value.sumOf { it.nbPages }
+    }
 
     /**
      * Refresh the books list

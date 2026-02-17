@@ -13,7 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ElOuedUniv.maktaba.data.model.Book
 import com.ElOuedUniv.maktaba.presentation.viewmodel.BookViewModel
-
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 /**
  * Main screen displaying the list of books
  */
@@ -24,6 +27,7 @@ fun BookListScreen(
 ) {
     val books by viewModel.books.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showOnlyLong by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -51,8 +55,42 @@ fun BookListScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
+                    Text(
+                        text = "totalbooks: ${books.size}",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Text(
+                        text = "totalPages: ${viewModel.totalPages()}",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Show Long Books Only",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        Switch(
+                            checked = showOnlyLong,
+                            onCheckedChange = { isChecked ->
+                                showOnlyLong = isChecked
+                            }
+                        )
+                    }
+                    val displayedBooks = if (showOnlyLong) {
+                        viewModel.getLongBooks()
+                    } else {
+                        books
+                    }
                     BookList(
-                        books = books,
+                        books = displayedBooks,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
