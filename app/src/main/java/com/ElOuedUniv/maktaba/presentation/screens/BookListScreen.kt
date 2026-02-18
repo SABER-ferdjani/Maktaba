@@ -55,15 +55,17 @@ fun BookListScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
+                    Column{
                     Text(
                         text = "totalbooks: ${books.size}",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
+
                     )
                     Text(
                         text = "totalPages: ${viewModel.totalPages()}",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(16.dp)
                     )
                     Row(
                         modifier = Modifier
@@ -93,6 +95,7 @@ fun BookListScreen(
                         books = displayedBooks,
                         modifier = Modifier.fillMaxSize()
                     )
+                    }
                 }
             }
         }
