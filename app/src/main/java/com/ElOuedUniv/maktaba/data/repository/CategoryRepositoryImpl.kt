@@ -15,7 +15,7 @@ class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
             id = "1",
             name = "Programming",
             description = "Books about software development and coding",
-            iconRes = android.R.drawable.ic_menu_view
+            iconRes = android.R.drawable.ic_menu_manage
         ),
         Category(
             id = "2",

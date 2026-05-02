@@ -1,29 +1,19 @@
 package com.ElOuedUniv.maktaba.presentation.book.add
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import com.ElOuedUniv.maktaba.presentation.common.UriImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,13 +23,6 @@ fun AddBookView(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia(),
-        onResult = { uri ->
-            viewModel.onAction(AddBookUiAction.OnImageSelected(uri?.toString()))
-        }
-    )
-
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onBackClick()
@@ -48,131 +31,149 @@ fun AddBookView(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Add New Book", fontWeight = FontWeight.Bold) },
+            TopAppBar(
+                title = { Text("ADD BOOK", style = MaterialTheme.typography.titleMedium) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel")
+                    TextButton(onClick = onBackClick) {
+                        Text(text = "Cancel")
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                actions = {
+                    TextButton(onClick = { viewModel.onAction(AddBookUiAction.OnAddClick) }) {
+                        Text(text = "Confirm")
+                    }
+                }
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Image Picker
-            Box(
+            val titleError = uiState.titleError
+            OutlinedTextField(
+                value = uiState.title,
+                onValueChange = { viewModel.onAction(AddBookUiAction.OnTitleChange(it)) },
+                label = { Text("Title") },
+                isError = titleError != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (titleError != null) {
+                Text(
+                    text = titleError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+
+            val isbnError = uiState.isbnError
+            OutlinedTextField(
+                value = uiState.isbn,
+                onValueChange = { viewModel.onAction(AddBookUiAction.OnIsbnChange(it)) },
+                label = { Text("ISBN") },
+                isError = isbnError != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (isbnError != null) {
+                Text(
+                    text = isbnError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+
+            val pagesError = uiState.pagesError
+            OutlinedTextField(
+                value = uiState.nbPages,
+                onValueChange = { viewModel.onAction(AddBookUiAction.OnPagesChange(it)) },
+                label = { Text("Pages") },
+                isError = pagesError != null,
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (pagesError != null) {
+                Text(
+                    text = pagesError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+
+            OutlinedTextField(
+                value = uiState.author,
+                onValueChange = { viewModel.onAction(AddBookUiAction.OnAuthorChange(it)) },
+                label = { Text("Author") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = uiState.categoryId,
+                onValueChange = { viewModel.onAction(AddBookUiAction.OnCategoryChange(it)) },
+                label = { Text("Category") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "ADD COVER IMAGE",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            val imagePickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.GetContent(),
+                onResult = { uri: Uri? ->
+                    uri?.let { viewModel.onAction(AddBookUiAction.OnCoverImageSelected(it.toString())) }
+                }
+            )
+
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable {
-                        photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
-                contentAlignment = Alignment.Center
+                    .height(180.dp)
+                    .clickable { imagePickerLauncher.launch("image/*") },
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
-                if (uiState.imageUrl != null) {
-                    AsyncImage(
-                        model = uiState.imageUrl,
-                        contentDescription = "Selected Cover",
+                if (uiState.coverImageUri != null) {
+                    UriImage(
+                        uriString = uiState.coverImageUri,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentDescription = "Selected cover image"
                     )
                 } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "Add Cover Image",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        Text("📷 Tap to add a cover image")
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Form Fields
-            OutlinedTextField(
-                value = uiState.title,
-                onValueChange = { viewModel.onAction(AddBookUiAction.OnTitleChange(it)) },
-                label = { Text("Book Title") },
-                placeholder = { Text("e.g. The Great Gatsby") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                isError = uiState.titleError != null,
-                supportingText = uiState.titleError?.let { { Text(it) } },
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            OutlinedTextField(
-                value = uiState.isbn,
-                onValueChange = { viewModel.onAction(AddBookUiAction.OnIsbnChange(it)) },
-                label = { Text("ISBN-13") },
-                placeholder = { Text("13 digits") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.isbnError != null,
-                supportingText = uiState.isbnError?.let { { Text(it) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            OutlinedTextField(
-                value = uiState.nbPages,
-                onValueChange = { viewModel.onAction(AddBookUiAction.OnPagesChange(it)) },
-                label = { Text("Number of Pages") },
-                placeholder = { Text("e.g. 250") },
-                modifier = Modifier.fillMaxWidth(),
-                isError = uiState.nbPagesError != null,
-                supportingText = uiState.nbPagesError?.let { { Text(it) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (uiState.errorMessage != null) {
-                Text(
-                    text = uiState.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Button(
-                onClick = { viewModel.onAction(AddBookUiAction.OnAddClick) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = uiState.isFormValid && !uiState.isLoading,
-                shape = RoundedCornerShape(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text("Confirm and Add", style = MaterialTheme.typography.titleMedium)
+                OutlinedButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancel")
+                }
+
+                Button(
+                    onClick = { viewModel.onAction(AddBookUiAction.OnAddClick) },
+                    enabled = uiState.isFormValid,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Save Book")
                 }
             }
         }
